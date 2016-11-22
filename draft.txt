@@ -1,0 +1,10 @@
+
+*** ACCESSO VPN DI IREN ***
+
+Hostname: vpn.irenenergia.it
+IP address: 89.184.104.23
+Utenze:
+-	e-manfrin fluxiren
+-	e-sartorea 12345678
+-	e-cerutti 12345678
+-   e-masieroc 12345678 (deve essere ancora abilitata)

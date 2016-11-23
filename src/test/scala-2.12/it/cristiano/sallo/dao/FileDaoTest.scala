@@ -2,14 +2,16 @@ package it.cristiano.sallo.dao
 
 import java.io.{File, FileNotFoundException}
 
+import it.cristiano.sallo.common.BaseTest
+import it.cristiano.sallo.util.CryptoUtils
 import org.scalatest.FlatSpec
 
 /**
   * Created by cristiano on 11/21/16.
   */
-class FileDaoTest extends FlatSpec{
+class FileDaoTest extends FlatSpec with BaseTest{
 
-  val fdao = new FileDao("./src/test/resources/file.csv")
+  val fdao = new FileDao(DECRYPT_FILE_PATH)
 
   /**
     * Check if file exists.
@@ -42,10 +44,8 @@ class FileDaoTest extends FlatSpec{
   }
 
   "File in file.csv" must " contain 2 records with pattern 'password2'" in {
-    assert(fdao.getByMatch("password2").get.size == 2)
+    CryptoUtils.encrypt(DEFAULT_PASS,DECRYPT_FILE_PATH)
+    assert(fdao.getByMatch(DEFAULT_PASS).get.size == 2)
   }
-
-
-
 
 }

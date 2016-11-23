@@ -1,5 +1,6 @@
 package it.cristiano.sallo.util
 
+import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 import java.nio.file.{Files, Paths}
 import java.security.MessageDigest
 import java.util
@@ -8,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec
 
 import org.apache.commons.codec.binary.Base64
 
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 
@@ -16,19 +18,34 @@ import scala.io.Source
   */
 object CryptoUtils {
 
-  def encrypt(key: String, filename: String): String = {
+  def encrypt(key: String, filename: String, filenameEnc: String = "not_declared"): Unit = {
     val cipher: Cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
     cipher.init(Cipher.ENCRYPT_MODE, keyToSpec(key))
     val byteArray = Files.readAllBytes(Paths.get(filename))
-    //Base64.encodeBase64String(cipher.doFinal(filename.getBytes("UTF-8")))
-    Base64.encodeBase64String(cipher.doFinal(byteArray))
+    val fileContent = Base64.encodeBase64String(cipher.doFinal(byteArray))
 
+    val file = if (filenameEnc.equals("not_declared"))
+      new File(filename + ".enc")
+    else
+      new File(filenameEnc)
+
+    val bw = new BufferedWriter(new FileWriter(file))
+    bw.write(fileContent)
+    bw.close()
   }
 
-  def decrypt(key: String, encryptedFilename: String): String = {
+  def decrypt(key: String, encryptedFilename: String): List[String] = {
     val cipher: Cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING")
     cipher.init(Cipher.DECRYPT_MODE, keyToSpec(key))
-    new String(cipher.doFinal(Base64.decodeBase64(encryptedFilename)))
+    val byteArray = Files.readAllBytes(Paths.get(encryptedFilename))
+
+    val bufferedSource = io.Source.fromBytes(cipher.doFinal(Base64.decodeBase64(byteArray)))
+    var result = new ListBuffer[String]()
+    for (line <- bufferedSource.getLines)
+      result += line
+    bufferedSource.close()
+
+    result.toList
   }
 
   def keyToSpec(key: String): SecretKeySpec = {

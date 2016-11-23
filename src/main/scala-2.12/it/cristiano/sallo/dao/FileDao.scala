@@ -13,13 +13,12 @@ class FileDao (fileName: String) extends GenericDao{
   Source.fromFile(fileName)
 
 
-  override def count: Int =
+  override def count: Int = {
     Source.fromFile(fileName).getLines().size
-
+  }
 
   override def getAll: List[String] =
     Source.fromFile(fileName).getLines.toList
-
 
   override def getByMatch(str: String): Option[List[String]] = {
     val result = Source.fromFile(fileName).getLines.toList.filter(p => p.contains(str))

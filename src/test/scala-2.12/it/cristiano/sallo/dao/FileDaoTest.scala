@@ -9,43 +9,53 @@ import org.scalatest.FlatSpec
 /**
   * Created by cristiano on 11/21/16.
   */
-class FileDaoTest extends FlatSpec with BaseTest{
+class FileDaoTest extends BaseTest{
 
-  val fdao = new FileDao(DECRYPT_FILE_PATH)
+
+  CryptoUtils.encrypt(DEFAULT_PASS,DECRYPT_FILE_PATH,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
+  val fdao = new FileDao(DEFAULT_PASS,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
 
   /**
     * Check if file exists.
     */
   it must "produce FileNotFoundException when file does not exits!" in {
     assertThrows[FileNotFoundException] {
-      new FileDao("./src/test/resources/noFile.csv")
+      new FileDao(DEFAULT_PASS,"./src/test/resources/noFile.csv")
     }
   }
 
   /**
     * Check FileDao.count method
     */
-  "File in file.csv" must "have 4 records" in {
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must "have 4 records" in {
     assert(fdao.count == 4)
   }
 
   /**
     * Check FileDao.getAll method
     */
-  "File in file.csv" must "have 4 String records" in {
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must "have 4 String records" in {
     assert(fdao.getAll.size == 4)
   }
 
   /**
-    * When there is no match getByMatch return None.
+    * When there is no match getByMatch it get a 0 size List.
     */
-  "File in file.csv" must " not contain records with pattern 'no_match'" in {
-    assert(fdao.getByMatch("no_match") == None)
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain records with pattern 'no_match'" in {
+    assert(fdao.getByMatch("no_match").size == 0)
   }
 
-  "File in file.csv" must " contain 2 records with pattern 'password2'" in {
-    CryptoUtils.encrypt(DEFAULT_PASS,DECRYPT_FILE_PATH)
-    assert(fdao.getByMatch(DEFAULT_PASS).get.size == 2)
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records with pattern" + DEFAULT_PASS in {
+    assert(fdao.getByMatch(DEFAULT_PASS).size == 2)
   }
+
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records added (TODO)" in {
+    val line = "entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.203.103.23,user=e-masieroc,pass=password3"
+    assert(false)
+    //assert(fdao.addLine(line) == 2)
+  }
+
+
+
 
 }

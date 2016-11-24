@@ -10,7 +10,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec}
 /**
   * Created by cristiano on 11/22/16.
   */
-class CryptTest extends FlatSpec with BeforeAndAfter with BaseTest{
+class CryptTest extends BaseTest with BeforeAndAfter{
 
 
   "RSA" must "have its test" in {

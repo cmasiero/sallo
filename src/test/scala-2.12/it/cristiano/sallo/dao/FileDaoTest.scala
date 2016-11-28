@@ -11,7 +11,6 @@ import org.scalatest.FlatSpec
   */
 class FileDaoTest extends BaseTest{
 
-
   CryptoUtils.encrypt(DEFAULT_PASS,DECRYPT_FILE_PATH,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
   val fdao = new FileDao(DEFAULT_PASS,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
 
@@ -45,16 +44,23 @@ class FileDaoTest extends BaseTest{
     assert(fdao.getByMatch("no_match").size == 0)
   }
 
-  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records with pattern" + DEFAULT_PASS in {
+  /**
+    * Count by pattern
+    */
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records with pattern : " + DEFAULT_PASS in {
     assert(fdao.getByMatch(DEFAULT_PASS).size == 2)
   }
 
-  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records added (TODO)" in {
-    val line = "entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.203.103.23,user=e-masieroc,pass=password3"
-    assert(false)
-    //assert(fdao.addLine(line) == 2)
+  /**
+    * Adds two records
+    */
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records added" in {
+    assert(DaoReturnMessage.INSERTED ==
+      fdao.addLine("entity=irenAdd1,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd1"))
+    assert(DaoReturnMessage.INSERTED ==
+      fdao.addLine("entity=irenAdd2,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd2"))
+    assert(fdao.getAll.size == 6)
   }
-
 
 
 

@@ -34,6 +34,18 @@ object CryptoUtils {
     bw.close()
   }
 
+  def encryptList(key: String, listString: List[String], filenameEnc: String = "not_declared"): Unit = {
+    val cipher: Cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, keyToSpec(key))
+
+    val byteArray = listString.flatMap(s => s.toList).map(c => c.toByte)
+    val fileContent = Base64.encodeBase64String(cipher.doFinal(byteArray.toArray))
+
+    val bw = new BufferedWriter(new FileWriter(new File(filenameEnc)))
+    bw.write(fileContent)
+    bw.close()
+  }
+
   def decrypt(key: String, encryptedFilename: String): List[String] = {
     val cipher: Cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING")
     cipher.init(Cipher.DECRYPT_MODE, keyToSpec(key))

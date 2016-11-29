@@ -33,6 +33,17 @@ class CryptTest extends BaseTest with BeforeAndAfter{
     new File(ENCRYPT_FILE_CUSTOM_NAME).delete()
   }
 
+  "CryptoUtils, create the default file.csv.enc from Array of String it" must "contain 2 lines" in {
+    val list = List (
+      "attr01=value1,attr02=value2" + System.getProperty("line.separator"),
+      "attr03=value3,attr03=value3" + System.getProperty("line.separator")
+    )
+    CryptoUtils.encryptList(DEFAULT_PASS,list,ENCRYPT_FILE_DEFAULT_NAME)
+    val result = CryptoUtils.decrypt(DEFAULT_PASS,ENCRYPT_FILE_DEFAULT_NAME)
+    assert(result.size == 2)
+    new File(ENCRYPT_FILE_DEFAULT_NAME).delete()
+  }
+
   "CryptoUtils" must "decrypt a file named file.csv.enc" in {
     CryptoUtils.encrypt(DEFAULT_PASS,DECRYPT_FILE_PATH)
     val dc = CryptoUtils.decrypt(DEFAULT_PASS,ENCRYPT_FILE_DEFAULT_NAME)

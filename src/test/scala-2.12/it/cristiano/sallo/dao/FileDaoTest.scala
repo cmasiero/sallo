@@ -3,6 +3,7 @@ package it.cristiano.sallo.dao
 import java.io.{File, FileNotFoundException}
 
 import it.cristiano.sallo.common.BaseTest
+import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
 import org.scalatest.FlatSpec
 
@@ -61,7 +62,5 @@ class FileDaoTest extends BaseTest{
       fdao.addLine("entity=irenAdd2,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd2"))
     assert(fdao.getAll.size == 6)
   }
-
-
 
 }

@@ -2,6 +2,7 @@ package it.cristiano.sallo.dao
 
 import java.io._
 
+import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
 
 import scala.io.Source
@@ -21,12 +22,32 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     // Backup input file
     val src = encryptFile
     val dest = encryptFile + ".bac"
-    var inputChannel = new FileInputStream(src).getChannel()
-    var outputChannel = new FileOutputStream(dest).getChannel()
+    val inputChannel = new FileInputStream(src).getChannel()
+    val outputChannel = new FileOutputStream(dest).getChannel()
     outputChannel.transferFrom(inputChannel, 0, inputChannel.size())
     inputChannel.close()
     outputChannel.close()
 
+    //Add index on records if not exists
+    addIndex
+
+  }
+
+  private def addIndex : DaoReturnMessage.Value = {
+    val lines = CryptoUtils.decrypt(key,encryptFile)
+    val list = lines.map(l => l.concat(System.getProperty("line.separator")))
+    val listWithIndex = lines.zipWithIndex.map(elem => {
+      val listTuple = new LineDao(elem._1).get("index")
+      if (listTuple.lift(0) == None) {
+        "index=".concat(elem._2.toString()).concat(",").concat(elem._1)
+      }
+    })
+
+    for (nLine <- listWithIndex)
+      println("*" + nLine)
+
+    CryptoUtils.encryptList(key,list.toList,encryptFile)
+    DaoReturnMessage.INSERTED
   }
 
   override def count: Int = {
@@ -43,25 +64,17 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
   }
 
   override def addLine(line: String): DaoReturnMessage.Value = {
-
-    val decFileTmp = encryptFile + ".tmp"
-
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
     bufLines += line
 
-    val fileTmp = new File(decFileTmp)
-    val bw = new BufferedWriter(new FileWriter(fileTmp))
-    for (line <- bufLines)
-      bw.write(line + System.getProperty("line.separator"))
-    bw.close()
+    val list = for {
+        line <- bufLines
+    } yield (line + System.getProperty("line.separator"))
 
-    CryptoUtils.encrypt(key,decFileTmp,encryptFile)
-
-    new File(decFileTmp).delete()
+    CryptoUtils.encryptList(key,list.toList,encryptFile)
 
     DaoReturnMessage.INSERTED
-
   }
 
 }

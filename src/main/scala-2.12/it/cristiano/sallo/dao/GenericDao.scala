@@ -1,13 +1,7 @@
 package it.cristiano.sallo.dao
 
-/**
-  * Created by cristiano on 11/21/16.
-  */
+import it.cristiano.sallo.dao.message.DaoReturnMessage
 
-object DaoReturnMessage extends Enumeration {
-  type message = Value
-  val INSERTED, UPDATED, DELETED, ERROR, NOTHING = Value
-}
 
 trait GenericDao {
 

@@ -25,20 +25,21 @@ class FileDaoTest extends BaseTest{
   }
 
   /**
-    * Check FileDao.count method
+    * Check FileDao.count
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must "have 4 records" in {
     assert(fdao.count == 4)
   }
 
   /**
-    * Check FileDao.getAll method
+    * Check FileDao.getAll
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must "have 4 String records" in {
     assert(fdao.getAll.size == 4)
   }
 
   /**
+    * Check FileDao.getByMatch
     * When there is no match getByMatch it get a 0 size List.
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain records with pattern 'no_match'" in {
@@ -46,6 +47,7 @@ class FileDaoTest extends BaseTest{
   }
 
   /**
+    * Check FileDao.getByMatch
     * Count by pattern
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records with pattern : " + DEFAULT_PASS in {
@@ -53,6 +55,7 @@ class FileDaoTest extends BaseTest{
   }
 
   /**
+    * Check FileDao.addLine
     * Adds two records
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records added" in {
@@ -62,5 +65,15 @@ class FileDaoTest extends BaseTest{
       fdao.addLine("entity=irenAdd2,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd2"))
     assert(fdao.getAll.size == 6)
   }
+
+  /**
+    * Check FileDao.addFile
+    */
+  "File " + DECRYPT_FILE_DRAFT_PATH must " be added to " + DECRYPT_FILE_PATH in {
+    fdao.addFile(DECRYPT_FILE_DRAFT_PATH)
+    assert(fdao.getAll.size == 8)
+  }
+
+
 
 }

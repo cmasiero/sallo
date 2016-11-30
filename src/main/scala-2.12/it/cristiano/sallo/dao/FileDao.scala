@@ -28,26 +28,37 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     inputChannel.close()
     outputChannel.close()
 
-    //Add index on records if not exists
-    addIndex
+    val message = fixIndex
+    println("[FileDao:init] : fix index message " + message)
 
   }
 
-  private def addIndex : DaoReturnMessage.Value = {
-    val lines = CryptoUtils.decrypt(key,encryptFile)
+  /**
+    *  Adds index on records if not exists or changes
+    *  index's value when isn't at right position.
+    * @return
+    */
+  private def fixIndex: DaoReturnMessage.Value = {
+
+    var message = DaoReturnMessage.NOTHING
+    val lines = CryptoUtils.decrypt(key, encryptFile)
     val list = lines.map(l => l.concat(System.getProperty("line.separator")))
-    val listWithIndex = lines.zipWithIndex.map(elem => {
-      val listTuple = new LineDao(elem._1).get("index")
-      if (listTuple.lift(0) == None) {
-        "index=".concat(elem._2.toString()).concat(",").concat(elem._1)
+    val listLinesWithIndex = list.zipWithIndex.map(lineWithIndex => {
+      val lineDao = new LineDao(lineWithIndex._1)
+      val listIndexInLine = lineDao.get("index")
+      if (listIndexInLine.lift(0) == None || listIndexInLine.lift(0).get._2 != 0) {
+        message = DaoReturnMessage.CHANGE
+        "index=".concat(lineWithIndex._2.toString()).concat(",").concat(lineWithIndex._1)
       }
+      else if (listIndexInLine.lift(0).get._2 == 0 && lineWithIndex._2 != listIndexInLine.lift(0).get._1){
+        //println( "pos in line:" + listIndexInLine.lift(0).get._2  + ",real index:" + lineWithIndex._2 + ",in file index:" + listIndexInLine.lift(0).get._1)
+        message = DaoReturnMessage.CHANGE
+        lineDao.update("index", lineWithIndex._2.toString, 0)._1
+      }
+      else lineWithIndex._1
     })
-
-    for (nLine <- listWithIndex)
-      println("*" + nLine)
-
-    CryptoUtils.encryptList(key,list.toList,encryptFile)
-    DaoReturnMessage.INSERTED
+    CryptoUtils.encryptList(key,listLinesWithIndex.toList,encryptFile)
+    message
   }
 
   override def count: Int = {
@@ -63,6 +74,23 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     r.filter(l => l.contains(str))
   }
 
+
+  override def addFile(filePath: String): DaoReturnMessage.Value = {
+    val lines = CryptoUtils.decrypt(key, encryptFile)
+    val draft = Source.fromFile(filePath).getLines
+    val bufLines = lines.toBuffer
+    for (line <- draft)
+      bufLines += line
+
+    val list = for {
+      line <- bufLines
+    } yield (line + System.getProperty("line.separator"))
+
+    CryptoUtils.encryptList(key, list.toList, encryptFile)
+    DaoReturnMessage.INSERTED
+  }
+
+
   override def addLine(line: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
@@ -76,6 +104,14 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
 
     DaoReturnMessage.INSERTED
   }
+
+  override def removeAttribute(index: String, keyRemove: String): _root_.it.cristiano.sallo.dao.message.DaoReturnMessage.Value = super.removeAttribute(index, keyRemove)
+
+  override def insertAttributeAfter(index: String, keyInsert: String, valueInsert: String, keyAttributeAfter: String): _root_.it.cristiano.sallo.dao.message.DaoReturnMessage.Value = super.insertAttributeAfter(index, keyInsert, valueInsert, keyAttributeAfter)
+
+  override def updateAttribute(index: String, key: String, valueUpdate: String): _root_.it.cristiano.sallo.dao.message.DaoReturnMessage.Value = super.updateAttribute(index, key, valueUpdate)
+
+  override def removeLine(index: String): _root_.it.cristiano.sallo.dao.message.DaoReturnMessage.Value = super.removeLine(index)
 
 }
 

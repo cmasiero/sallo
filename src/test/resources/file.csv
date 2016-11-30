@@ -1,4 +1,4 @@
 entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.200.100.23,user=e-manfrin,pass=password1
 entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.201.101.23,user=e-sartorea,pass=DEFAULT_PASS
-entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.202.102.23,user=e-cerutti,pass=DEFAULT_PASS
-entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.203.103.23,user=e-masieroc,pass=password3
+entity=iren,topic=vpn,index=mustNotChange,hostname=vpn.cristiano.it,IPaddress=89.202.102.23,user=e-cerutti,pass=DEFAULT_PASS
+index=100,entity=iren,topic=vpn,hostname=vpn.cristiano.it,IPaddress=89.203.103.23,user=e-masieroc,pass=password3

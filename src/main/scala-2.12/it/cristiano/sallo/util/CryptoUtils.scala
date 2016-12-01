@@ -38,7 +38,8 @@ object CryptoUtils {
     val cipher: Cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
     cipher.init(Cipher.ENCRYPT_MODE, keyToSpec(key))
 
-    val byteArray = listString.flatMap(s => s.toList).map(c => c.toByte)
+    val listSep = listString.map(l => l.concat(System.getProperty("line.separator")))
+    val byteArray = listSep.flatMap(s => s.toList).map(c => c.toByte)
     val fileContent = Base64.encodeBase64String(cipher.doFinal(byteArray.toArray))
 
     val bw = new BufferedWriter(new FileWriter(new File(filenameEnc)))
@@ -60,7 +61,7 @@ object CryptoUtils {
     result.toList
   }
 
-  def keyToSpec(key: String): SecretKeySpec = {
+  private def keyToSpec(key: String): SecretKeySpec = {
     var keyBytes: Array[Byte] = (SALT + key).getBytes("UTF-8")
     val sha: MessageDigest = MessageDigest.getInstance("SHA-1")
     keyBytes = sha.digest(keyBytes)

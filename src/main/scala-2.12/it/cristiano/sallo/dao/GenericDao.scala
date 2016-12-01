@@ -11,17 +11,19 @@ trait GenericDao {
 
   def getByMatch(pattern: String): List[String] = List[String]()
 
-  def addFile(filePath: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def addFile(filePath: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
-  def addLine(line: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def addLine(line: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
-  def removeLine(index: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def getLine(index: String): Option[String] = None
 
-  def insertAttributeAfter(index: String, keyInsert: String, valueInsert: String, keyAttributeAfter: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def removeLine(index: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
-  def updateAttribute(index: String, key: String, valueUpdate: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def insertAttribute(index: String, keyInsert: String, valueInsert: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
-  def removeAttribute(index: String, keyRemove: String): DaoReturnMessage.Value = DaoReturnMessage.NOTHING
+  def updateAttribute(index: String, key: String, valueUpdate: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
+
+  def removeAttribute(index: String, keyRemove: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
 }
 

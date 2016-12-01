@@ -24,6 +24,16 @@ class FileDaoTest extends BaseTest{
     }
   }
 
+
+  /**
+    * Check for wrong password
+    */
+  it must "have the right password!" in {
+    assertThrows[java.security.GeneralSecurityException] {
+      new FileDao("wrongPassword", ENCRYPT_FILE_NAME_FILE_DAO_TEST)
+    }
+  }
+
   /**
     * Check FileDao.count
     */
@@ -60,19 +70,82 @@ class FileDaoTest extends BaseTest{
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain 2 records added" in {
     assert(DaoReturnMessage.INSERTED ==
-      fdao.addLine("entity=irenAdd1,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd1"))
+      fdao.addLine("name=massimo,surname=marino,user=m-marino,pass=password1"))
     assert(DaoReturnMessage.INSERTED ==
-      fdao.addLine("entity=irenAdd2,topic=vpn,hostname=vpn.cristiano.it,IPaddress=00.00.00.01,user=e-masieroc,pass=passwordAdd2"))
+      fdao.addLine("name=nicola,surname=nuzzo,user=n-nuzzo,pass=password2"))
     assert(fdao.getAll.size == 6)
+  }
+
+  /**
+    * Check FileDao.getLine
+    * Get line 4
+    */
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain record 4 but record 32" in {
+    fdao.fixIndex
+    assert(None == fdao.getLine("32"))
+    val check = "index=4,name=massimo,surname=marino,user=m-marino,pass=password1"
+    assert(check == fdao.getLine("4").get)
+  }
+
+  /**
+    * Check FileDao.removeLine
+    * remove line 4
+    */
+  "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain record 4 because it has been removed" in {
+    fdao.fixIndex
+    assert(DaoReturnMessage.FAIL == fdao.removeLine("32"))
+
+    val check = "name=massimo,surname=marino,user=m-marino,pass=password1"
+    assert(DaoReturnMessage.DELETED == fdao.removeLine("4"))
+
+  }
+
+  /**
+    * Check FileDao.addFile without input file
+    */
+  "File no_file.csv" must " not be added to " + DECRYPT_FILE_PATH in {
+    assert(fdao.addFile("no_file.csv") == DaoReturnMessage.FILE_NOT_EXIST)
   }
 
   /**
     * Check FileDao.addFile
     */
-  "File " + DECRYPT_FILE_DRAFT_PATH must " be added to " + DECRYPT_FILE_PATH in {
+  "File " + DECRYPT_FILE_DRAFT_PATH must " be added to " in {
     fdao.addFile(DECRYPT_FILE_DRAFT_PATH)
-    assert(fdao.getAll.size == 8)
+    assert(fdao.getAll.size == 7)
   }
+
+  /**
+    * Check FileDao.insertAttribute
+    */
+  "In File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain record 4 changed in attribute, an error for non-existent record 100" in{
+    fdao.fixIndex
+    assert(fdao.insertAttribute("100","newattribute","newvalue") == DaoReturnMessage.FAIL)
+    assert(fdao.insertAttribute("4","newattribute","newvalue") == DaoReturnMessage.SUCCESS)
+    assert(fdao.getLine("4").get == "index=4,name=nicola,surname=nuzzo,user=n-nuzzo,pass=password2,newattribute=newvalue")
+  }
+
+
+
+  /**
+    * Check FileDao.updateAttribute
+    *
+    */
+
+  /**
+    * Check FileDao.removeAttribute
+    *
+    */
+  /*"File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain attrToRemove=attrToRemove in index 1" in {
+    fdao.fixIndex
+    //val fda2 = new FileDao(DEFAULT_PASS,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
+    for ( line <- fdao.getAll ){
+    //for ( line <- fdao.getAll ){
+      println("° " + line)
+    }
+    assert(fdao.removeAttribute("3","attrToRemove") == DaoReturnMessage.DELETED)
+  }*/
+
 
 
 

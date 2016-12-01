@@ -6,5 +6,14 @@ package it.cristiano.sallo.dao.message
 
 object DaoReturnMessage extends Enumeration {
   type message = Value
-  val INSERTED, UPDATED, CHANGE, DELETED, ERROR, NOTHING = Value
+
+  val
+  INSERTED,
+  UPDATED,
+  CHANGED,
+  DELETED,
+  FILE_NOT_EXIST,
+  SUCCESS,
+  FAIL,
+  ERROR = Value
 }

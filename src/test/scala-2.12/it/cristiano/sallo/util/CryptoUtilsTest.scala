@@ -10,7 +10,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec}
 /**
   * Created by cristiano on 11/22/16.
   */
-class CryptTest extends BaseTest with BeforeAndAfter{
+class CryptoUtilsTest extends BaseTest with BeforeAndAfter{
 
 
   "RSA" must "have its test" in {
@@ -35,8 +35,8 @@ class CryptTest extends BaseTest with BeforeAndAfter{
 
   "CryptoUtils, create the default file.csv.enc from Array of String it" must "contain 2 lines" in {
     val list = List (
-      "attr01=value1,attr02=value2" + System.getProperty("line.separator"),
-      "attr03=value3,attr03=value3" + System.getProperty("line.separator")
+      "attr01=value1,attr02=value2",
+      "attr03=value3,attr03=value3"
     )
     CryptoUtils.encryptList(DEFAULT_PASS,list,ENCRYPT_FILE_DEFAULT_NAME)
     val result = CryptoUtils.decrypt(DEFAULT_PASS,ENCRYPT_FILE_DEFAULT_NAME)

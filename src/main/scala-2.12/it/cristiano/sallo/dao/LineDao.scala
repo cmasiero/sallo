@@ -45,7 +45,7 @@ class LineDao (line: String) {
     * @return (line updated, return message)
     */
   def update(key: String, value: String, index: Int = -1): Tuple2[String, DaoReturnMessage.Value] = {
-    var message = DaoReturnMessage.NOTHING
+    var message = DaoReturnMessage.FAIL
     val s = line.split(",").map(_.trim)
     val sZipped = s zipWithIndex
     val tmp = sZipped.map(
@@ -65,5 +65,15 @@ class LineDao (line: String) {
     val result = tmp.map(tuple => tuple._1).mkString(",")
     (result, message)
   }
+
+  def removeAttribute(key: String): Tuple2[String, DaoReturnMessage.Value] = {
+    var message = DaoReturnMessage.FAIL
+    val lineSplit = line.split(",").map(_.trim)
+    val resultSplit = lineSplit.filterNot(attr => attr.split("=").lift(0).get == key)
+    if (resultSplit.size != lineSplit.size) message = DaoReturnMessage.DELETED
+    (resultSplit.mkString(","),message)
+  }
+
+
 
 }

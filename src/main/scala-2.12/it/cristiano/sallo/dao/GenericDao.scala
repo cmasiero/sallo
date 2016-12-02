@@ -21,7 +21,7 @@ trait GenericDao {
 
   def insertAttribute(index: String, keyInsert: String, valueInsert: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
-  def updateAttribute(index: String, key: String, valueUpdate: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
+  def updateAttribute(index: String, keyUpdate: String, valueUpdate: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 
   def removeAttribute(index: String, keyRemove: String): DaoReturnMessage.Value = DaoReturnMessage.FAIL
 

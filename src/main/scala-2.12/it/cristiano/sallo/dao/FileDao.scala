@@ -1,19 +1,23 @@
 package it.cristiano.sallo.dao
 
 import java.io._
+import java.nio.file.{Files, Paths}
+import java.security.GeneralSecurityException
 
 import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
 
 import scala.io.Source
-import scala.util.control.Exception._
 /**
   * Created by cristiano on 11/21/16.
   */
-class FileDao (key: String, encryptFile: String) extends GenericDao{
+
+@throws(classOf[GeneralSecurityException])
+@throws(classOf[FileNotFoundException])
+class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false) extends GenericDao{
+
 
   init
-
   def init: Unit ={
 
     //Check if file exists.
@@ -28,36 +32,36 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     inputChannel.close()
     outputChannel.close()
 
-    val message = fixIndex
+    /*
+     * Try to decrypt, in that manner problems throw
+     * SecurityException managed by client.
+     */
+    val listResult = CryptoUtils.decrypt(key, encryptFile)
+
+    if (boolFixIndex)
+      CryptoUtils.encryptList(key,listResult,encryptFile)
 
   }
 
   /**
     *  Adds index on records if not exists or changes
     *  index's value when isn't at right position.
-    * @return
+    * @return The list with index attributes in sequence.
     */
-  def fixIndex: DaoReturnMessage.Value = {
-
-    var message = DaoReturnMessage.FAIL
-    val lines = CryptoUtils.decrypt(key, encryptFile)
+  private def fixIndex (lines: List[String]) : List[String] = {
 
     val listLinesWithIndex = lines.zipWithIndex.map(lineWithIndex => {
       val lineDao = new LineDao(lineWithIndex._1)
       val listIndexInLine = lineDao.get("index")
       if (listIndexInLine.lift(0) == None || listIndexInLine.lift(0).get._2 != 0) {
-        message = DaoReturnMessage.CHANGED
         "index=".concat(lineWithIndex._2.toString()).concat(",").concat(lineWithIndex._1)
       }
       else if (listIndexInLine.lift(0).get._2 == 0 && lineWithIndex._2 != listIndexInLine.lift(0).get._1){
-        message = DaoReturnMessage.CHANGED
         lineDao.update("index", lineWithIndex._2.toString, 0)._1
       }
       else lineWithIndex._1
     })
-
-    CryptoUtils.encryptList(key,listLinesWithIndex.toList,encryptFile)
-    message
+    listLinesWithIndex
   }
 
   override def count: Int = {
@@ -83,7 +87,7 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
       for (line <- draft)
         bufLines += line
 
-      CryptoUtils.encryptList(key, bufLines.toList, encryptFile)
+      CryptoUtils.encryptList(key, fixIndex(bufLines.toList), encryptFile)
       message = DaoReturnMessage.INSERTED
     } catch {
       case nfe: FileNotFoundException => message = DaoReturnMessage.FILE_NOT_EXIST
@@ -95,23 +99,9 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
     bufLines += line
-    CryptoUtils.encryptList(key,bufLines.toList,encryptFile)
+    CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
     DaoReturnMessage.INSERTED
   }
-
- /* private def addLineAtIndex(index: String, line: String): Unit ={
-    val lines = CryptoUtils.decrypt(key,encryptFile)
-    val bufLines = lines.toBuffer
-    val lz = bufLines.zipWithIndex
-    for (l <- lz){
-      println("--------> " + l)
-    }
-
-
-    bufLines += line
-    CryptoUtils.encryptList(key,bufLines.toList,encryptFile)
-    DaoReturnMessage.INSERTED
-  }*/
 
   override def getLine(index: String): Option[String] = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
@@ -122,14 +112,14 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
   override def removeLine(index: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val linesFiltered = lines.filterNot(l => new LineDao(l).get("index").lift(0).get._1 == index)
-    CryptoUtils.encryptList(key,linesFiltered,encryptFile)
+    CryptoUtils.encryptList(key,fixIndex(linesFiltered),encryptFile)
     if (lines.size == linesFiltered.size) DaoReturnMessage.FAIL else DaoReturnMessage.DELETED
   }
 
   override def insertAttribute(index: String, keyInsert: String, valueInsert: String): DaoReturnMessage.Value = {
     val currentLine = getLine(index)
     if (currentLine == None) {
-      DaoReturnMessage.FAIL
+      DaoReturnMessage.NO_LINE
     } else {
       val lines = CryptoUtils.decrypt(key,encryptFile)
       val listResult = lines.zipWithIndex.map(lz =>
@@ -143,12 +133,48 @@ class FileDao (key: String, encryptFile: String) extends GenericDao{
     }
   }
 
-  override def updateAttribute(index: String, key: String, valueUpdate: String): DaoReturnMessage.Value = {
-    super.updateAttribute(index, key, valueUpdate)
+  override def updateAttribute(index: String, keyUpdate: String, valueUpdate: String): DaoReturnMessage.Value = {
+    var message = DaoReturnMessage.ERROR
+    val currentLine = getLine(index)
+    if (currentLine == None) {
+      message = DaoReturnMessage.NO_LINE
+    } else {
+      val lines = CryptoUtils.decrypt(key,encryptFile)
+      val listResult = lines.zipWithIndex.map(lz =>
+        if (lz._2.toString == index){
+          val tup = new LineDao(lz._1.toString).update(keyUpdate,valueUpdate)
+          message = tup._2
+          tup._1
+        }
+        else{
+          lz._1
+        }
+      )
+      CryptoUtils.encryptList(key,listResult,encryptFile)
+    }
+    message
   }
 
   override def removeAttribute(index: String, keyRemove: String): DaoReturnMessage.Value = {
-    super.removeAttribute(index, keyRemove)
+    var message = DaoReturnMessage.ERROR
+    val currentLine = getLine(index)
+    if (currentLine == None) {
+      message = DaoReturnMessage.NO_LINE
+    } else {
+      val lines = CryptoUtils.decrypt(key,encryptFile)
+      val listResult = lines.zipWithIndex.map(lz =>
+        if (lz._2.toString == index){
+          val tup = new LineDao(lz._1.toString).removeAttribute(keyRemove)
+          message = tup._2
+          tup._1
+        }
+        else{
+          lz._1
+        }
+      )
+      CryptoUtils.encryptList(key,listResult,encryptFile)
+    }
+    message
   }
 
 }

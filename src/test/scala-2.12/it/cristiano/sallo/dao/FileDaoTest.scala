@@ -5,7 +5,6 @@ import java.io.{File, FileNotFoundException}
 import it.cristiano.sallo.common.BaseTest
 import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
-import org.scalatest.FlatSpec
 
 /**
   * Created by cristiano on 11/21/16.
@@ -20,10 +19,9 @@ class FileDaoTest extends BaseTest{
     */
   it must "produce FileNotFoundException when file does not exits!" in {
     assertThrows[FileNotFoundException] {
-      new FileDao(DEFAULT_PASS,"./src/test/resources/noFile.csv")
+      new FileDao(DEFAULT_PASS, "./src/test/resources/noFile.csv")
     }
   }
-
 
   /**
     * Check for wrong password
@@ -81,7 +79,7 @@ class FileDaoTest extends BaseTest{
     * Get line 4
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " contain record 4 but record 32" in {
-    fdao.fixIndex
+    //fdao.fixIndex
     assert(None == fdao.getLine("32"))
     val check = "index=4,name=massimo,surname=marino,user=m-marino,pass=password1"
     assert(check == fdao.getLine("4").get)
@@ -92,7 +90,7 @@ class FileDaoTest extends BaseTest{
     * remove line 4
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain record 4 because it has been removed" in {
-    fdao.fixIndex
+    //fdao.fixIndex
     assert(DaoReturnMessage.FAIL == fdao.removeLine("32"))
 
     val check = "name=massimo,surname=marino,user=m-marino,pass=password1"
@@ -118,35 +116,32 @@ class FileDaoTest extends BaseTest{
   /**
     * Check FileDao.insertAttribute
     */
-  "In File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain record 4 changed in attribute, an error for non-existent record 100" in{
-    fdao.fixIndex
-    assert(fdao.insertAttribute("100","newattribute","newvalue") == DaoReturnMessage.FAIL)
+  "File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain record 4 changed in attribute, an error for non-existent record 100" in{
+    assert(fdao.insertAttribute("100","newattribute","newvalue") == DaoReturnMessage.NO_LINE)
     assert(fdao.insertAttribute("4","newattribute","newvalue") == DaoReturnMessage.SUCCESS)
     assert(fdao.getLine("4").get == "index=4,name=nicola,surname=nuzzo,user=n-nuzzo,pass=password2,newattribute=newvalue")
   }
-
-
 
   /**
     * Check FileDao.updateAttribute
     *
     */
+  "File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain index=4 with attribute name=nicola changed in NickChanged" in{
+    assert(fdao.updateAttribute("10000","name","NickChanged")==DaoReturnMessage.NO_LINE)
+    assert(fdao.updateAttribute("4","no_valid_attr","NickChanged")==DaoReturnMessage.NO_ATTRIBUTE_CHANGED)
+    assert(fdao.updateAttribute("4","name","NickChanged")==DaoReturnMessage.UPDATED)
+    assert(fdao.getLine("4").get=="index=4,name=NickChanged,surname=nuzzo,user=n-nuzzo,pass=password2,newattribute=newvalue")
+  }
 
   /**
     * Check FileDao.removeAttribute
     *
     */
-  /*"File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain attrToRemove=attrToRemove in index 1" in {
-    fdao.fixIndex
-    //val fda2 = new FileDao(DEFAULT_PASS,ENCRYPT_FILE_NAME_FILE_DAO_TEST)
-    for ( line <- fdao.getAll ){
-    //for ( line <- fdao.getAll ){
-      println("° " + line)
-    }
-    assert(fdao.removeAttribute("3","attrToRemove") == DaoReturnMessage.DELETED)
-  }*/
-
-
-
+  "File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " NOT contain index=4 with attribute newattribute=newvalue" in{
+    assert(fdao.removeAttribute("10000","newattribute")==DaoReturnMessage.NO_LINE)
+    assert(fdao.removeAttribute("4","no_valid_attr")==DaoReturnMessage.NO_ATTRIBUTE_CHANGED)
+    assert(fdao.removeAttribute("4","newattribute")==DaoReturnMessage.DELETED)
+    assert(fdao.getLine("4").get=="index=4,name=NickChanged,surname=nuzzo,user=n-nuzzo,pass=password2")
+  }
 
 }

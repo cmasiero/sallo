@@ -27,25 +27,25 @@ class LineDao (line: String) {
   }
 
   /**
-    * It returns the line updated in values for specified key.
-    * If you pass index parameter, value will change
-    * only in key at that index.
-    * Example:
-    * line   = "key0=value0,key1=value1,key0=value2,key3=value3"
-    * key    = "key0"
-    * value  = "CHANGE"
-    * index  = 2
-    * result = "key0=value0,key1=value1,key0=CHANGE,key3=value3"
-    * In case of not specified index result will be:
-    * result = "key0=CHANGE,key1=value1,key0=CHANGE,key3=value3"
-    * in other words : function will update values at each keys.
+    * It returns the line updated in values for specified key.<br>
+    * If you pass index parameter, value will change only in key at that index.<br>
+    *
+    * <p>Example:<br>
+    * line   = "key0=value0,key1=value1,key0=value2,key3=value3"<br>
+    * key    = "key0"<br>
+    * value  = "CHANGE"<br>
+    * index  = 2<br>
+    * result = "key0=value0,key1=value1,key0=CHANGE,key3=value3"<br>
+    * <p>In case of not specified index result will be:<br>
+    * result = "key0=CHANGE,key1=value1,key0=CHANGE,key3=value3"<br>
+    * in other words : function will update values at each keys.<br>
     * @param key
     * @param value
     * @param index
     * @return (line updated, return message)
     */
   def update(key: String, value: String, index: Int = -1): Tuple2[String, DaoReturnMessage.Value] = {
-    var message = DaoReturnMessage.FAIL
+    var message = DaoReturnMessage.NO_ATTRIBUTE_CHANGED
     val s = line.split(",").map(_.trim)
     val sZipped = s zipWithIndex
     val tmp = sZipped.map(
@@ -67,7 +67,7 @@ class LineDao (line: String) {
   }
 
   def removeAttribute(key: String): Tuple2[String, DaoReturnMessage.Value] = {
-    var message = DaoReturnMessage.FAIL
+    var message = DaoReturnMessage.NO_ATTRIBUTE_CHANGED
     val lineSplit = line.split(",").map(_.trim)
     val resultSplit = lineSplit.filterNot(attr => attr.split("=").lift(0).get == key)
     if (resultSplit.size != lineSplit.size) message = DaoReturnMessage.DELETED

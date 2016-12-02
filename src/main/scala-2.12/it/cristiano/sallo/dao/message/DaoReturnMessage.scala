@@ -14,6 +14,8 @@ object DaoReturnMessage extends Enumeration {
   DELETED,
   FILE_NOT_EXIST,
   SUCCESS,
+  NO_ATTRIBUTE_CHANGED,
+  NO_LINE,
   FAIL,
   ERROR = Value
 }

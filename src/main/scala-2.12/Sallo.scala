@@ -7,7 +7,7 @@ import it.cristiano.sallo.dao.FileDao
 
 object Sallo {
 
-  val EncryptRE = """^\s*([a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+\s*){3}$""".r
+//  val EncryptRE = """^\s*([a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+\s*){3}$""".r
 
   /**
     * <b>command :<b/> usage
@@ -20,12 +20,33 @@ object Sallo {
 
     println(s"command:'$command'")
 
-    command match {
-      case ""     => help
-      case "help" => help
-      case EncryptRE(command) => encrypt(args.mkString(" "))
-      case _ => commandNotFound
-    }
+    val scanner = new java.util.Scanner(System.in)
+
+    //  prompt for the user's name
+    print("Enter your name: ")
+
+    // get their input as a String
+    val username = scanner.next()
+
+    // prompt for their age
+    System.out.print("Enter your age: ")
+
+    // get the age as an int
+    val age = scanner.nextInt()
+
+//    println(String.format("%s, your age is %d", username, age));
+    println(s"$username, your age is $age")
+
+
+
+
+    //
+//    command match {
+//      case ""     => help
+//      case "help" => help
+//      case EncryptRE(command) => encrypt(args.mkString(" "))
+//      case _ => commandNotFound
+//    }
 
 
   }

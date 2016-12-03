@@ -11,5 +11,4 @@ libraryDependencies ++= Seq(
   "commons-codec" % "commons-codec" % "1.9"
 )
 
-// https://mvnrepository.com/artifact/commons-codec/commons-codec
-//libraryDependencies += "commons-codec" % "commons-codec" % "1.9"
+//assemblyJarName in assembly := "scala-library-2.12.0.jar"

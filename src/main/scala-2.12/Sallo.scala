@@ -2,6 +2,7 @@ import java.io.{File, PrintWriter}
 import java.nio.file.{Files, Paths}
 
 import it.cristiano.sallo.dao.FileDao
+import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
 
 import scala.io.Source
@@ -13,11 +14,12 @@ import scala.io.Source
 
 object Sallo {
 
-  val DEFAULT_PASS                    = "DEFAULT_PASS"
-  val DECRYPT_FILE                    = "file.csv"
-  val ENCRYPT_FILE                    = "file.csv.enc"
+  val DEFAULT_PASS = "DEFAULT_PASS"
+  val DECRYPT_FILE = "file.csv"
+  val ENCRYPT_FILE = "file.csv.enc"
 
   val scanner = new java.util.Scanner(System.in)
+
 
   /**
     * <b>command :<b/> usage
@@ -27,45 +29,21 @@ object Sallo {
   def main(args: Array[String]): Unit = {
 
     val password = Files.exists(Paths.get(ENCRYPT_FILE)) match {
-      case true  => login
+      case true => login
       case false => initializeFile
     }
 
-    /*
-        println(s"command:'$command'")
+    help
+    selection(true, password)
 
 
-        //  prompt for the user's name
-        print("Enter your name: ")
-
-        // get their input as a String
-        val username = scanner.next()
-
-        // prompt for their age
-        System.out.print("Enter your age: ")
-
-        // get the age as an int
-        val age = scanner.nextInt()
-
-    //    println(String.format("%s, your age is %d", username, age));
-        println(s"$username, your age is $age")
-    */
-
-  }
-
-  def help: Unit = {
-    println("*********************************** HELP ***********************************")
-    println("1) Encrypt your csv file : java -jar sallo.jar encrypt yourpassword path/yourfilename.csv")
-    println("")
-    println("")
-    println("")
-    println("")
-    println("")
-    println("")
   }
 
   def login: String = {
-    ""
+    print("password:")
+    val password = scanner.next()
+    CryptoUtils.decrypt(password, ENCRYPT_FILE)
+    password
   }
 
   def initializeFile: String = {
@@ -77,21 +55,61 @@ object Sallo {
     val pw = new PrintWriter(new File(DECRYPT_FILE))
     pw.write(exampleRecord)
     pw.close
-    CryptoUtils.encrypt(password,DECRYPT_FILE)
+    CryptoUtils.encrypt(password, DECRYPT_FILE)
     new File(DECRYPT_FILE).delete()
     println(s"Your encrypted file has been created, it contains an example records : '$exampleRecord'")
     password
   }
 
-  def commandNotFound: Unit = {
-    println("Command not found")
-    help
+  def help: Unit = {
+    println("*********************************** HELP ***********************************")
+    println("1) Add a csv file: add file path/yourfilename.csv")
+    println("2) Add line      : add line attribute1=attribute1,attribute2=attribute2,attributeEtc=attributeEtc")
+    //    println("")
+    //    println("")
+    //    println("")
+    //    println("")
+    //    println("")
   }
 
-  def encrypt (command: String) : Unit = {
-    println("-> " + command)
-    //val fdao = new FileDao()
+  def selection(fixLine: Boolean, password: String = DEFAULT_PASS): Unit = {
+
+    if (Files.exists(Paths.get(ENCRYPT_FILE)) == false) {
+      println("Archive file has been removed, FATAL ERROR!")
+      System.exit(0)
+    }
+
+    val fdao = new FileDao(password, ENCRYPT_FILE)
+
+    print("Command:")
+    if (fixLine) scanner.nextLine
+    val command = scanner.nextLine
+
+    val ar = command.split(" ")
+    ar match {
+      case Array("add", "file", _) => {
+        val filePath = ar.lift(2).get
+        if (Files.exists(Paths.get(filePath)) == false)
+          println(s"File '$filePath' does not exist, RETRY!")
+        else {
+          fdao.addFile(ar.lift(2).get)
+          println(s"File '$filePath' ADDED!")
+        }
+      }
+      case Array("add", "line", _) => {
+        fdao.addLine(ar.lift(2).get)
+        println(s"line :'${ar.lift(2).get}' ADDED!")
+      }
+      case Array("exit", _*) => {
+        println("Goodbye")
+        System.exit(1)
+      }
+      case _ => {
+        println("Command inserted not found, RETRY!")
+      }
+    }
+
+    selection(false, password)
+
   }
-
-
 }

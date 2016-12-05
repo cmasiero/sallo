@@ -50,7 +50,7 @@ object Sallo {
     val exampleRecord = "sallo=first-line,attribute=first-attribute"
     println("*********************************** INITIALIZE ***********************************")
     println("Sallo needs create your encrypted file, you must insert your pass!")
-    System.out.print("Enter your password: ")
+    println("Enter your password: ")
     val password = scanner.next()
     val pw = new PrintWriter(new File(DECRYPT_FILE))
     pw.write(exampleRecord)
@@ -93,12 +93,12 @@ object Sallo {
           println(s"File '$filePath' does not exist, RETRY!")
         else {
           fdao.addFile(ar.lift(2).get)
-          println(s"File '$filePath' ADDED!")
+          println(s"File: '$filePath' ADDED!")
         }
       }
       case Array("add", "line", _) => {
         fdao.addLine(ar.lift(2).get)
-        println(s"line :'${ar.lift(2).get}' ADDED!")
+        println(s"Line: '${ar.lift(2).get}' ADDED!")
       }
       case Array("exit", _*) => {
         println("Goodbye")
@@ -106,6 +106,7 @@ object Sallo {
       }
       case _ => {
         println("Command inserted not found, RETRY!")
+        help
       }
     }
 

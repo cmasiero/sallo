@@ -118,7 +118,7 @@ class FileDaoTest extends BaseTest{
     */
   "File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain record 4 changed in attribute, an error for non-existent record 100" in{
     assert(fdao.insertAttribute("100","newattribute","newvalue") == DaoReturnMessage.NO_LINE)
-    assert(fdao.insertAttribute("4","newattribute","newvalue") == DaoReturnMessage.SUCCESS)
+    assert(fdao.insertAttribute("4","newattribute","newvalue") == DaoReturnMessage.INSERTED)
     assert(fdao.getLine("4").get == "index=4,name=nicola,surname=nuzzo,user=n-nuzzo,pass=password2,newattribute=newvalue")
   }
 

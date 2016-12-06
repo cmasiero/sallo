@@ -20,14 +20,12 @@ object Sallo {
 
   val scanner = new java.util.Scanner(System.in)
 
-
   /**
     * <b>command :<b/> usage
     *
     * @param args
     */
   def main(args: Array[String]): Unit = {
-
     val password = Files.exists(Paths.get(ENCRYPT_FILE)) match {
       case true => login
       case false => initializeFile
@@ -35,8 +33,6 @@ object Sallo {
 
     help
     selection(true, password)
-
-
   }
 
   def login: String = {
@@ -48,7 +44,8 @@ object Sallo {
 
   def initializeFile: String = {
     val exampleRecord = "sallo=first-line,attribute=first-attribute"
-    println("*********************************** INITIALIZE ***********************************")
+    println("*********************************  INITIALIZE  *********************************")
+
     println("Sallo needs create your encrypted file, you must insert your pass!")
     println("Enter your password: ")
     val password = scanner.next()
@@ -62,14 +59,17 @@ object Sallo {
   }
 
   def help: Unit = {
-    println("*********************************** HELP ***********************************")
-    println("1) Add a csv file: add file path/yourfilename.csv")
-    println("2) Add line      : add line attribute1=attribute1,attribute2=attribute2,attributeEtc=attributeEtc")
-    //    println("")
-    //    println("")
-    //    println("")
-    //    println("")
-    //    println("")
+    println("***********************************  HELP  *********************************")
+    println("Add a csv file                  : add file path/yourfilename.csv")
+    println("Add line                        : add line attribute1=attribute1,attribute2=attribute2,attributeEtc=attributeEtc")
+    println("Remove line at index            : remove line [index]")
+    println("Get all line                    : get all")
+    println("Get line at index               : get line [index]")
+    println("Match string                    : match [String]")
+    println("Add attribute at line index     : add attribute [index] attributeName=attributeValue")
+    println("Remove attribute at line index  : remove attribute [index] attributeName")
+    println("Update attribute at line index  : update attribute [index] attributeName=attributeValue")
+
   }
 
   def selection(fixLine: Boolean, password: String = DEFAULT_PASS): Unit = {
@@ -89,23 +89,96 @@ object Sallo {
     ar match {
       case Array("add", "file", _) => {
         val filePath = ar.lift(2).get
-        if (Files.exists(Paths.get(filePath)) == false)
-          println(s"File '$filePath' does not exist, RETRY!")
-        else {
-          fdao.addFile(ar.lift(2).get)
-          println(s"File: '$filePath' ADDED!")
+        fdao.addFile(filePath) match {
+          case DaoReturnMessage.FILE_NOT_EXIST => println(s"File '$filePath' does not exist, RETRY!")
+          case _ => println(s"File: '$filePath' ADDED!")
         }
       }
       case Array("add", "line", _) => {
-        fdao.addLine(ar.lift(2).get)
-        println(s"Line: '${ar.lift(2).get}' ADDED!")
+        val line = ar.lift(2).get
+        fdao.addLine(line)
+        println(s"Line: '${line}' ADDED!")
       }
-      case Array("exit", _*) => {
-        println("Goodbye")
+      case Array("remove", "line", _) => {
+        val index = ar.lift(2).get
+        val lineBackup = fdao.getLine(index).get
+        fdao.removeLine(index) match {
+          case DaoReturnMessage.DELETED => println(s"Line '$lineBackup' REMOVED!")
+          case _ => println(s"Line index:'$index' does not exist, RETRY!")
+        }
+      }
+      case Array("get", "all") => {
+        for (l <- fdao.getAll) println(s"-> $l")
+      }
+      case Array("get", "line", _) => {
+        val index = ar.lift(2).get
+        val line = fdao.getLine(index)
+        if (line == None)
+          println(s"Line index:'$index' does not exist, RETRY!")
+        else
+          println(s"-> ${line.get}")
+      }
+      case Array("match", _) => {
+        val lines = fdao.getByMatch(ar.lift(1).get)
+        fdao.getByMatch(ar.lift(1).get) match {
+          case _ if lines.size == 0 => println(s"No lines match string:'${ar.lift(1).get}', RETRY!")
+          case _ => for (l <- lines) println(s"-> $l")
+        }
+      }
+      case Array("add", "attribute", _, _) => {
+        val index = ar.lift(2).get
+        val keyInsert = ar.lift(3).get.split("=").lift(0).get
+        val valueInsert = ar.lift(3).get.split("=").lift(1) match {
+          case None => {
+            print(s"Insert attribute for key $keyInsert:")
+            scanner.nextLine()
+          }
+          case _ => ar.lift(3).get.split("=").lift(1).get
+        }
+        fdao.insertAttribute(index, keyInsert, valueInsert) match {
+          case DaoReturnMessage.INSERTED => {
+            println(s"Line $index, attribute: ${ar.lift(3).get} ADDED!")
+            println(s"New line $index: ${fdao.getLine(index).get}")
+          }
+          case _ => println(s"Line index:'$index' does not exist, RETRY!")
+        }
+      }
+      case Array("remove", "attribute", _, _) => {
+        val index = ar.lift(2).get
+        val keyName = ar.lift(3).get
+        fdao.removeAttribute(index, keyName) match {
+          case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
+          case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyName' does not exist, RETRY!")
+          case DaoReturnMessage.DELETED => println(s"Line $index, attribute: ${keyName} REMOVED!")
+        }
+      }
+
+      case Array("update", "attribute", _, _) => {
+        val index = ar.lift(2).get
+        // TODO: When get attribute in every case must != index, its a reserved key.
+        val keyUpdate = ar.lift(3).get.split("=").lift(0).get
+        val valueUpdate = ar.lift(3).get.split("=").lift(1) match {
+          case None => {
+            print(s"Insert attribute for key $keyUpdate:")
+            scanner.nextLine()
+          }
+          case _ => ar.lift(3).get.split("=").lift(1).get
+        }
+        fdao.updateAttribute(index,keyUpdate,valueUpdate) match {
+          case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
+          case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyUpdate' does not exist, RETRY!")
+          case DaoReturnMessage.UPDATED => {
+            println(s"Line $index, attribute: ${keyUpdate} UPDATE!")
+            println(s"New line $index: ${fdao.getLine(index).get}")
+          }
+        }
+      }
+      case Array("exit") => {
+        println("Goodbye!")
         System.exit(1)
       }
       case _ => {
-        println("Command inserted not found, RETRY!")
+        println("Command not found, RETRY!")
         help
       }
     }

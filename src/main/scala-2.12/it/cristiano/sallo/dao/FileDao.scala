@@ -129,7 +129,7 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
           lz._1
       )
       CryptoUtils.encryptList(key,listResult,encryptFile)
-      DaoReturnMessage.SUCCESS
+      DaoReturnMessage.INSERTED
     }
   }
 

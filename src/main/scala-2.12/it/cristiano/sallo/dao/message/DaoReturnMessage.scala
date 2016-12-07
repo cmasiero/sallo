@@ -17,5 +17,6 @@ object DaoReturnMessage extends Enumeration {
   NO_ATTRIBUTE_CHANGED,
   NO_LINE,
   FAIL,
+  INVALID_KEY_INDEX,
   ERROR = Value
 }

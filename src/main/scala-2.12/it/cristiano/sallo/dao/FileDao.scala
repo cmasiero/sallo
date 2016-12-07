@@ -98,9 +98,14 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
   override def addLine(line: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
+    val message = new ElementValidation(LineValidation).execute(line)
     bufLines += line
     CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
-    DaoReturnMessage.INSERTED
+    message match {
+      case DaoReturnMessage.SUCCESS => DaoReturnMessage.INSERTED
+      case _ => message
+    }
+
   }
 
   override def getLine(index: String): Option[String] = {

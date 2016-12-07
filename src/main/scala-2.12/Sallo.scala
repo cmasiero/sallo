@@ -1,8 +1,8 @@
 import java.io.{File, PrintWriter}
 import java.nio.file.{Files, Paths}
 
-import it.cristiano.sallo.dao.FileDao
-import it.cristiano.sallo.dao.message.DaoReturnMessage
+import it.cristiano.sallo.dao.{AttributeValidation, ElementValidation, FileDao, LineValidation}
+import it.cristiano.sallo.dao.message.{DaoReturnMessage}
 import it.cristiano.sallo.util.CryptoUtils
 
 import scala.io.Source
@@ -30,7 +30,6 @@ object Sallo {
       case true => login
       case false => initializeFile
     }
-
     help
     selection(true, password)
   }
@@ -67,8 +66,8 @@ object Sallo {
     println("Get line at index               : get line [index]")
     println("Match string                    : match [String]")
     println("Add attribute at line index     : add attribute [index] attributeName=attributeValue")
-    println("Remove attribute at line index  : remove attribute [index] attributeName")
     println("Update attribute at line index  : update attribute [index] attributeName=attributeValue")
+    println("Remove attribute at line index  : remove attribute [index] attributeName")
 
   }
 
@@ -86,6 +85,7 @@ object Sallo {
     val command = scanner.nextLine
 
     val ar = command.split(" ")
+
     ar match {
       case Array("add", "file", _) => {
         val filePath = ar.lift(2).get
@@ -143,19 +143,8 @@ object Sallo {
           case _ => println(s"Line index:'$index' does not exist, RETRY!")
         }
       }
-      case Array("remove", "attribute", _, _) => {
-        val index = ar.lift(2).get
-        val keyName = ar.lift(3).get
-        fdao.removeAttribute(index, keyName) match {
-          case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
-          case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyName' does not exist, RETRY!")
-          case DaoReturnMessage.DELETED => println(s"Line $index, attribute: ${keyName} REMOVED!")
-        }
-      }
-
       case Array("update", "attribute", _, _) => {
         val index = ar.lift(2).get
-        // TODO: When get attribute in every case must != index, its a reserved key.
         val keyUpdate = ar.lift(3).get.split("=").lift(0).get
         val valueUpdate = ar.lift(3).get.split("=").lift(1) match {
           case None => {
@@ -164,13 +153,22 @@ object Sallo {
           }
           case _ => ar.lift(3).get.split("=").lift(1).get
         }
-        fdao.updateAttribute(index,keyUpdate,valueUpdate) match {
+        fdao.updateAttribute(index, keyUpdate, valueUpdate) match {
           case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
           case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyUpdate' does not exist, RETRY!")
           case DaoReturnMessage.UPDATED => {
             println(s"Line $index, attribute: ${keyUpdate} UPDATE!")
             println(s"New line $index: ${fdao.getLine(index).get}")
           }
+        }
+      }
+      case Array("remove", "attribute", _, _) => {
+        val index = ar.lift(2).get
+        val keyName = ar.lift(3).get
+        fdao.removeAttribute(index, keyName) match {
+          case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
+          case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyName' does not exist, RETRY!")
+          case DaoReturnMessage.DELETED => println(s"Line $index, attribute: ${keyName} REMOVED!")
         }
       }
       case Array("exit") => {
@@ -184,6 +182,5 @@ object Sallo {
     }
 
     selection(false, password)
-
   }
 }

@@ -33,8 +33,15 @@ class LineValidation(elem: String) extends Validation {
 }
 
 class IndexValidation (elem: String, lines: List[String]) extends Validation {
+  // TODO : this method
   override def check : DaoReturnMessage.message  = {
-    // TODO: complete this method
+    val result = lines.iterator.filter(contain(_))
     DaoReturnMessage.NO_LINE
   }
+
+  def contain (line: String) : Boolean = {
+    println("----------- " + line)
+    true
+  }
 }
+

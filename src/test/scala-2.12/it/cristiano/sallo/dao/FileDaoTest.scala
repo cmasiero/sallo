@@ -71,6 +71,8 @@ class FileDaoTest extends BaseTest{
       fdao.addLine("name=massimo,surname=marino,user=m-marino,pass=password1"))
     assert(DaoReturnMessage.INSERTED ==
       fdao.addLine("name=nicola,surname=nuzzo,user=n-nuzzo,pass=password2"))
+    assert(DaoReturnMessage.INVALID_KEY_INDEX ==
+      fdao.addLine("name=nicola,index=56,surname=nuzzo,user=n-nuzzo,pass=password2"))
     assert(fdao.getAll.size == 6)
   }
 

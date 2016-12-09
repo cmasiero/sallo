@@ -128,11 +128,13 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val bufLines = lines.toBuffer
 
     val message = new ElementValidation(new LineValidation(line)).execute
-    bufLines += line
-    CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
     message match {
-      case DaoReturnMessage.SUCCESS => DaoReturnMessage.INSERTED
-      case _ => message
+      case DaoReturnMessage.SUCCESS => {
+        bufLines += line
+        CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
+        DaoReturnMessage.INSERTED
+      }
+      case DaoReturnMessage.INVALID_KEY_INDEX  => message
     }
   }
 

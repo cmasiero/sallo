@@ -114,6 +114,14 @@ class FileDaoTest extends BaseTest{
   }
 
   /**
+    * Check FileDao.addFile with index in wrong position
+    *
+    */
+  "File " + DECRYPT_FILE_DRAFT_WITH_INDEX_PATH must " is not valid because of index" in {
+    assert(fdao.addFile(DECRYPT_FILE_DRAFT_WITH_INDEX_PATH) == DaoReturnMessage.INVALID_KEY_INDEX)
+  }
+
+  /**
     * Check FileDao.insertAttribute
     */
   "File" + ENCRYPT_FILE_NAME_FILE_DAO_TEST  must " contain record 4 changed in attribute, an error for non-existent record 100" in{

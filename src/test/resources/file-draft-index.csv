@@ -1,0 +1,3 @@
+name=aggiunto1,surname=zaccaria,attrToRemove=attrToRemove,user=a-zaccaria,pass=password1
+name=aggiunto1,index=invalid,surname=zaccaria,attrToRemove=attrToRemove,user=a-zaccaria,pass=password1
+name=aggiunto2,surname=zorzi,user=a-zorzi,pass=DEFAULT_PASS

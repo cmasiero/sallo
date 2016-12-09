@@ -6,6 +6,7 @@ import java.security.GeneralSecurityException
 
 import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
+import scala.util.control.Breaks._
 
 import scala.io.Source
 /**
@@ -64,48 +65,75 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     listLinesWithIndex
   }
 
+  /**
+    * Number of records archived.
+    * @return Number of record.
+    */
   override def count: Int = {
     val dc = CryptoUtils.decrypt(key,encryptFile)
     dc.size
   }
 
+  /**
+    * It returns all records
+    * @return return all records
+    */
   override def getAll: List[String] =
     CryptoUtils.decrypt(key,encryptFile)
 
+  /**
+    * It returns all records that match input string,
+    * both, key and value, are valued.
+    * @param str : Matched string
+    * @return    : List of record
+    */
   override def getByMatch(str: String): List[String] = {
     val r = CryptoUtils.decrypt(key,encryptFile)
     r.filter(l => l.contains(str))
   }
 
+  /**
+    * It concats input file to current archive.
+    * @param filePath Input file
+    * @return DaoReturnMessage.INSERTED: successfully completed operation.
+    *         DaoReturnMessage.INVALID_KEY_INDEX: There is a line with key named index, it is a reserved key (Error)
+    *         DaoReturnMessage.FILE_NOT_EXIST: Input file does not exist (Error)
+    */
   override def addFile(filePath: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key, encryptFile)
-    var message = DaoReturnMessage.FAIL
+    var message = DaoReturnMessage.INSERTED
     try {
       val draft = Source.fromFile(filePath).getLines
-
       val bufLines = lines.toBuffer
-      for (line <- draft)
+      for (line <- draft) {
         bufLines += line
-
+        if (new ElementValidation(new LineValidation(line)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
+          return DaoReturnMessage.INVALID_KEY_INDEX
+      }
       CryptoUtils.encryptList(key, fixIndex(bufLines.toList), encryptFile)
-      message = DaoReturnMessage.INSERTED
     } catch {
       case nfe: FileNotFoundException => message = DaoReturnMessage.FILE_NOT_EXIST
     }
     message
   }
 
+  /**
+    * Add line at the end of current archive.
+    * @param line The line to add
+    * @return DaoReturnMessage.INSERTED: successfully completed operation.
+    *         DaoReturnMessage.INVALID_KEY_INDEX: There is a key named index, it is a reserved key (Error)
+    */
   override def addLine(line: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
-    val message = new ElementValidation(LineValidation).execute(line)
+
+    val message = new ElementValidation(new LineValidation(line)).execute
     bufLines += line
     CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
     message match {
       case DaoReturnMessage.SUCCESS => DaoReturnMessage.INSERTED
       case _ => message
     }
-
   }
 
   override def getLine(index: String): Option[String] = {

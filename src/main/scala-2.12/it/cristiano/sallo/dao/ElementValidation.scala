@@ -32,6 +32,7 @@ class LineValidation(elem: String) extends Validation {
   }
 }
 
+// TODO: if result is > 1 is better throws an exception
 class IndexValidation (indexValue: String, lines: List[String]) extends Validation {
   override def check : DaoReturnMessage.message  = {
     val result = for {
@@ -39,6 +40,7 @@ class IndexValidation (indexValue: String, lines: List[String]) extends Validati
       elem = l.split(",").lift(0).get.split("=")
       if (elem.lift(0).get == "index" && elem.lift(1).get == indexValue)
     } yield l
+
 
     if (result.size == 1)
       DaoReturnMessage.SUCCESS

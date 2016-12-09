@@ -32,16 +32,18 @@ class LineValidation(elem: String) extends Validation {
   }
 }
 
-class IndexValidation (elem: String, lines: List[String]) extends Validation {
-  // TODO : this method
+class IndexValidation (indexValue: String, lines: List[String]) extends Validation {
   override def check : DaoReturnMessage.message  = {
-    val result = lines.iterator.filter(contain(_))
-    DaoReturnMessage.NO_LINE
-  }
+    val result = for {
+      l <- lines
+      elem = l.split(",").lift(0).get.split("=")
+      if (elem.lift(0).get == "index" && elem.lift(1).get == indexValue)
+    } yield l
 
-  def contain (line: String) : Boolean = {
-    println("----------- " + line)
-    true
+    if (result.size == 1)
+      DaoReturnMessage.SUCCESS
+    else
+      DaoReturnMessage.NO_LINE
   }
 }
 

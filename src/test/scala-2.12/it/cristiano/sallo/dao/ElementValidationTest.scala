@@ -43,11 +43,11 @@ class ElementValidationTest extends BaseTest{
       "index=2,name=robert,surname=malone,name=john,")
     assert(new ElementValidation(new IndexValidation("3",listError)).execute == DaoReturnMessage.NO_LINE)
 
-//    val listOk = List(
-//      "index=1,name=robert,surname=malone,name=john,surname=smith",
-//      "index=2,name=robert,surname=malone,name=john",
-//      "index=3,name=robert,surname=malone,name=john")
-//    assert(new ElementValidation(new IndexValidation("3",listOk)).execute == DaoReturnMessage.SUCCESS)
+    val listOk = List(
+      "index=1,name=robert,surname=malone,name=john,surname=smith",
+      "index=2,name=robert,surname=malone,name=john",
+      "index=3,name=robert,surname=malone,name=john")
+    assert(new ElementValidation(new IndexValidation("3",listOk)).execute == DaoReturnMessage.SUCCESS)
 
   }
 

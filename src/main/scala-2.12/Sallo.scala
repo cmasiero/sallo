@@ -101,9 +101,9 @@ object Sallo {
       }
       case Array("remove", "line", _) => {
         val index = ar.lift(2).get
-        val lineBackup = fdao.getLine(index).get
+        val lineBackup = fdao.getLine(index)._1
         fdao.removeLine(index) match {
-          case DaoReturnMessage.DELETED => println(s"Line '$lineBackup' REMOVED!")
+          case DaoReturnMessage.SUCCESS => println(s"Line '$lineBackup' REMOVED!")
           case _ => println(s"Line index:'$index' does not exist, RETRY!")
         }
       }
@@ -113,10 +113,10 @@ object Sallo {
       case Array("get", "line", _) => {
         val index = ar.lift(2).get
         val line = fdao.getLine(index)
-        if (line == None)
+        if (line._2 == DaoReturnMessage.NO_LINE)
           println(s"Line index:'$index' does not exist, RETRY!")
         else
-          println(s"-> ${line.get}")
+          println(s"-> ${line._1}")
       }
       case Array("match", _) => {
         val lines = fdao.getByMatch(ar.lift(1).get)
@@ -136,9 +136,9 @@ object Sallo {
           case _ => ar.lift(3).get.split("=").lift(1).get
         }
         fdao.insertAttribute(index, keyInsert, valueInsert) match {
-          case DaoReturnMessage.INSERTED => {
+          case DaoReturnMessage.SUCCESS => {
             println(s"Line $index, attribute: ${ar.lift(3).get} ADDED!")
-            println(s"New line $index: ${fdao.getLine(index).get}")
+            println(s"New line $index: ${fdao.getLine(index)._1}")
           }
           case _ => println(s"Line index:'$index' does not exist, RETRY!")
         }
@@ -156,9 +156,9 @@ object Sallo {
         fdao.updateAttribute(index, keyUpdate, valueUpdate) match {
           case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
           case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyUpdate' does not exist, RETRY!")
-          case DaoReturnMessage.UPDATED => {
+          case DaoReturnMessage.SUCCESS => {
             println(s"Line $index, attribute: ${keyUpdate} UPDATE!")
-            println(s"New line $index: ${fdao.getLine(index).get}")
+            println(s"New line $index: ${fdao.getLine(index)._1}")
           }
         }
       }
@@ -168,7 +168,7 @@ object Sallo {
         fdao.removeAttribute(index, keyName) match {
           case DaoReturnMessage.NO_LINE => println(s"Line '$index' does not exist, RETRY!")
           case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyName' does not exist, RETRY!")
-          case DaoReturnMessage.DELETED => println(s"Line $index, attribute: ${keyName} REMOVED!")
+          case DaoReturnMessage.SUCCESS => println(s"Line $index, attribute: ${keyName} REMOVED!")
         }
       }
       case Array("exit") => {

@@ -8,15 +8,10 @@ object DaoReturnMessage extends Enumeration {
   type message = Value
 
   val
-  INSERTED,
-  UPDATED,
-  CHANGED,
-  DELETED,
-  FILE_NOT_EXIST,
   SUCCESS,
+  FILE_NOT_EXIST,
   NO_ATTRIBUTE_CHANGED,
   NO_LINE,
-  FAIL,
-  INVALID_KEY_INDEX,
+  KEY_INDEX_IS_RESERVED,
   ERROR = Value
 }

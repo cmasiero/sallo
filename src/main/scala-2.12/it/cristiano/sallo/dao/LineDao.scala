@@ -51,11 +51,11 @@ class LineDao (line: String) {
     val tmp = sZipped.map(
       tup =>
         if (tup._1.split("=").lift(0).get == key && index == -1) {
-          message = DaoReturnMessage.UPDATED
+          message = DaoReturnMessage.SUCCESS
           (key.concat("=").concat(value), tup._2)
         }
         else if (tup._1.split("=").lift(0).get == key && index == tup._2) {
-          message = DaoReturnMessage.UPDATED
+          message = DaoReturnMessage.SUCCESS
           (key.concat("=").concat(value), tup._2)
         }
         else
@@ -70,7 +70,7 @@ class LineDao (line: String) {
     var message = DaoReturnMessage.NO_ATTRIBUTE_CHANGED
     val lineSplit = line.split(",").map(_.trim)
     val resultSplit = lineSplit.filterNot(attr => attr.split("=").lift(0).get == key)
-    if (resultSplit.size != lineSplit.size) message = DaoReturnMessage.DELETED
+    if (resultSplit.size != lineSplit.size) message = DaoReturnMessage.SUCCESS
     (resultSplit.mkString(","),message)
   }
 

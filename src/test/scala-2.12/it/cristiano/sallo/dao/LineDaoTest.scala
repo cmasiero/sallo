@@ -35,14 +35,14 @@ class LineDaoTest extends BaseTest with BeforeAndAfter{
     val lineDao = new LineDao ("key0=value0,key1=value1,key0=value2,key3=value3")
     val tup = lineDao.update("key0","CHANGE")
     assert(tup._1 == "key0=CHANGE,key1=value1,key0=CHANGE,key3=value3")
-    assert(tup._2 == DaoReturnMessage.UPDATED)
+    assert(tup._2 == DaoReturnMessage.SUCCESS)
   }
 
   "line" must "be updated in index 2" in {
     val lineDao = new LineDao ("key0=value0,key1=value1,key0=value2,key3=value3")
     val tup = lineDao.update("key0","CHANGE",2)
     assert(tup._1 == "key0=value0,key1=value1,key0=CHANGE,key3=value3")
-    assert(tup._2 == DaoReturnMessage.UPDATED)
+    assert(tup._2 == DaoReturnMessage.SUCCESS)
   }
 
   "line" must "be NOT updated" in {
@@ -63,7 +63,7 @@ class LineDaoTest extends BaseTest with BeforeAndAfter{
     val lineDao = new LineDao ("key0=value0,key1=value1,key0=value2,key3=value3")
     val tup = lineDao.removeAttribute("key0")
     assert(tup._1 == "key1=value1,key3=value3")
-    assert(tup._2 == DaoReturnMessage.DELETED)
+    assert(tup._2 == DaoReturnMessage.SUCCESS)
   }
 
 }

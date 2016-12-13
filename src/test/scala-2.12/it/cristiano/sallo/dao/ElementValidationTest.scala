@@ -11,10 +11,10 @@ class ElementValidationTest extends BaseTest{
 
   "Attribute" must "avoids index key" in {
     val attrError1 = "index=34"
-    assert(new ElementValidation(new AttributeValidation(attrError1)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
+    assert(new ElementValidation(new AttributeValidation(attrError1)).execute == DaoReturnMessage.KEY_INDEX_IS_RESERVED)
 
     val attrError2 = "index"
-    assert(new ElementValidation(new AttributeValidation(attrError2)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
+    assert(new ElementValidation(new AttributeValidation(attrError2)).execute == DaoReturnMessage.KEY_INDEX_IS_RESERVED)
 
     val attrValid1 = "age"
     assert(new ElementValidation(new AttributeValidation(attrValid1)).execute == DaoReturnMessage.SUCCESS)
@@ -25,10 +25,10 @@ class ElementValidationTest extends BaseTest{
 
   "Line" must "avoids index key" in {
     val lineError1 = "index=34,index,index,name=john,age=123"
-    assert(new ElementValidation(new LineValidation(lineError1)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
+    assert(new ElementValidation(new LineValidation(lineError1)).execute == DaoReturnMessage.KEY_INDEX_IS_RESERVED)
 
     val lineError2 = "name=robert,surname=malone,index"
-    assert(new ElementValidation(new LineValidation(lineError2)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
+    assert(new ElementValidation(new LineValidation(lineError2)).execute == DaoReturnMessage.KEY_INDEX_IS_RESERVED)
 
     val lineValid1 = "name=robert,surname=malone,name=john,surname=index"
     assert(new ElementValidation(new LineValidation(lineValid1)).execute == DaoReturnMessage.SUCCESS)

@@ -95,20 +95,20 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
   /**
     * It concats input file to current archive.
     * @param filePath Input file
-    * @return DaoReturnMessage.INSERTED: successfully completed operation.
+    * @return DaoReturnMessage.SUCCESS: successfully completed operation.
     *         DaoReturnMessage.INVALID_KEY_INDEX: There is a line with key named index, it is a reserved key (Error)
     *         DaoReturnMessage.FILE_NOT_EXIST: Input file does not exist (Error)
     */
   override def addFile(filePath: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key, encryptFile)
-    var message = DaoReturnMessage.INSERTED
+    var message = DaoReturnMessage.SUCCESS
     try {
       val draft = Source.fromFile(filePath).getLines
       val bufLines = lines.toBuffer
       for (line <- draft) {
         bufLines += line
-        if (new ElementValidation(new LineValidation(line)).execute == DaoReturnMessage.INVALID_KEY_INDEX)
-          return DaoReturnMessage.INVALID_KEY_INDEX
+        if (new ElementValidation(new LineValidation(line)).execute == DaoReturnMessage.KEY_INDEX_IS_RESERVED)
+          return DaoReturnMessage.KEY_INDEX_IS_RESERVED
       }
       CryptoUtils.encryptList(key, fixIndex(bufLines.toList), encryptFile)
     } catch {
@@ -120,96 +120,110 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
   /**
     * Add line at the end of current archive.
     * @param line The line to add
-    * @return DaoReturnMessage.INSERTED: successfully completed operation.
+    * @return DaoReturnMessage.SUCCESS: successfully completed operation.
     *         DaoReturnMessage.INVALID_KEY_INDEX: There is a key named index, it is a reserved key (Error)
     */
   override def addLine(line: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val bufLines = lines.toBuffer
-
     val message = new ElementValidation(new LineValidation(line)).execute
     message match {
       case DaoReturnMessage.SUCCESS => {
         bufLines += line
         CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
-        DaoReturnMessage.INSERTED
       }
-      case DaoReturnMessage.INVALID_KEY_INDEX  => message
+      case _ =>
     }
+    message
   }
 
-  override def getLine(index: String): Option[String] = {
-    val lines = CryptoUtils.decrypt(key,encryptFile)
-    val linesFiltered = lines.filter(l => new LineDao(l).get("index").lift(0).get._1 == index)
-    if (linesFiltered.size > 0) Some(linesFiltered.lift(0).get) else None
+  override def getLine(index: String): (String, DaoReturnMessage.Value) = {
+    val lines = CryptoUtils.decrypt(key, encryptFile)
+    val message = new ElementValidation(new IndexValidation(index, lines)).execute
+    message match {
+      case DaoReturnMessage.SUCCESS => {
+        val listFiltered = lines.filter(l => new LineDao(l).get("index").lift(0).get._1 == index)
+        (listFiltered.lift(0).get, message)
+      }
+      case _ => ("", message)
+    }
   }
 
   override def removeLine(index: String): DaoReturnMessage.Value = {
     val lines = CryptoUtils.decrypt(key,encryptFile)
-    val linesFiltered = lines.filterNot(l => new LineDao(l).get("index").lift(0).get._1 == index)
-    CryptoUtils.encryptList(key,fixIndex(linesFiltered),encryptFile)
-    if (lines.size == linesFiltered.size) DaoReturnMessage.FAIL else DaoReturnMessage.DELETED
+    val message = new ElementValidation(new IndexValidation(index, lines)).execute
+    message match {
+      case DaoReturnMessage.SUCCESS => {
+        val linesFiltered = lines.filterNot(l => new LineDao(l).get("index").lift(0).get._1 == index)
+        CryptoUtils.encryptList(key,fixIndex(linesFiltered),encryptFile)
+      }
+      case _ =>
+    }
+    message
   }
 
   override def insertAttribute(index: String, keyInsert: String, valueInsert: String): DaoReturnMessage.Value = {
     val currentLine = getLine(index)
-    if (currentLine == None) {
-      DaoReturnMessage.NO_LINE
-    } else {
-      val lines = CryptoUtils.decrypt(key,encryptFile)
-      val listResult = lines.zipWithIndex.map(lz =>
-        if (lz._2.toString == index)
-          lz._1.concat(s",$keyInsert=$valueInsert")
-        else
-          lz._1
-      )
-      CryptoUtils.encryptList(key,listResult,encryptFile)
-      DaoReturnMessage.INSERTED
+    val message = currentLine._2
+    message match {
+      case DaoReturnMessage.SUCCESS => {
+        val lines = CryptoUtils.decrypt(key, encryptFile)
+        val listResult = lines.zipWithIndex.map(lz =>
+          if (lz._2.toString == index)
+            lz._1.concat(s",$keyInsert=$valueInsert")
+          else
+            lz._1
+        )
+        CryptoUtils.encryptList(key, listResult, encryptFile)
+      }
+      case _ =>
     }
+    message
   }
 
   override def updateAttribute(index: String, keyUpdate: String, valueUpdate: String): DaoReturnMessage.Value = {
-    var message = DaoReturnMessage.ERROR
     val currentLine = getLine(index)
-    if (currentLine == None) {
-      message = DaoReturnMessage.NO_LINE
-    } else {
-      val lines = CryptoUtils.decrypt(key,encryptFile)
-      val listResult = lines.zipWithIndex.map(lz =>
-        if (lz._2.toString == index){
-          val tup = new LineDao(lz._1.toString).update(keyUpdate,valueUpdate)
-          message = tup._2
-          tup._1
-        }
-        else{
-          lz._1
-        }
-      )
-      CryptoUtils.encryptList(key,listResult,encryptFile)
+    var message = currentLine._2
+    message match {
+      case DaoReturnMessage.SUCCESS => {
+        val lines = CryptoUtils.decrypt(key, encryptFile)
+        val listResult = lines.zipWithIndex.map(lz =>
+          if (lz._2.toString == index) {
+            val tup = new LineDao(lz._1.toString).update(keyUpdate, valueUpdate)
+            message = tup._2
+            tup._1
+          }
+          else {
+            lz._1
+          }
+        )
+        CryptoUtils.encryptList(key, listResult, encryptFile)
+      }
+      case _ =>
     }
     message
   }
 
   override def removeAttribute(index: String, keyRemove: String): DaoReturnMessage.Value = {
-    var message = DaoReturnMessage.ERROR
     val currentLine = getLine(index)
-    if (currentLine == None) {
-      message = DaoReturnMessage.NO_LINE
-    } else {
-      val lines = CryptoUtils.decrypt(key,encryptFile)
-      val listResult = lines.zipWithIndex.map(lz =>
-        if (lz._2.toString == index){
-          val tup = new LineDao(lz._1.toString).removeAttribute(keyRemove)
-          message = tup._2
-          tup._1
-        }
-        else{
-          lz._1
-        }
-      )
-      CryptoUtils.encryptList(key,listResult,encryptFile)
+    var message = currentLine._2
+    message match {
+      case DaoReturnMessage.SUCCESS => {
+        val lines = CryptoUtils.decrypt(key, encryptFile)
+        val listResult = lines.zipWithIndex.map(lz =>
+          if (lz._2.toString == index) {
+            val tup = new LineDao(lz._1.toString).removeAttribute(keyRemove)
+            message = tup._2
+            tup._1
+          }
+          else {
+            lz._1
+          }
+        )
+        CryptoUtils.encryptList(key, listResult, encryptFile)
+      }
+      case _ =>
     }
     message
   }
-
 }

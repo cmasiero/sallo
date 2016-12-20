@@ -1,11 +1,12 @@
 import java.io.{File, PrintWriter}
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, NoSuchFileException, Paths}
+import javax.crypto.BadPaddingException
 
 import it.cristiano.sallo.dao.{AttributeValidation, ElementValidation, FileDao, LineValidation}
 import it.cristiano.sallo.dao.message.DaoReturnMessage
 import it.cristiano.sallo.util.CryptoUtils
 
-import scala.io.Source
+import scala.annotation.tailrec
 
 /**
   * Created by cristiano on 11/21/16.
@@ -26,29 +27,35 @@ object Sallo {
     * @param args arguments
     */
   def main(args: Array[String]): Unit = {
-    val password = if (Files.exists(Paths.get(ENCRYPT_FILE))) {
-      login
-    } else {
-      initializeFile
-    }
+    val password = access()
     help()
     selection(fixLine = true, password)
   }
 
-  def login: String = {
-    print("password:")
-    val password = scanner.next()
-    CryptoUtils.decrypt(password, ENCRYPT_FILE)
-    password
+  def access(password: String = DEFAULT_PASS): String = {
+    @tailrec
+    def login(password: String): String = {
+      print("password:")
+      val password = scanner.next()
+      try {
+        CryptoUtils.decrypt(password, ENCRYPT_FILE)
+        password
+      } catch {
+        case _: NoSuchFileException =>
+          initializeFile(password)
+        case _: BadPaddingException =>
+          println(s"Login Failed!")
+          login(password)
+      }
+    }
+    login(password)
   }
 
-  def initializeFile: String = {
+  def initializeFile(password: String): String = {
     val exampleRecord = "sallo=first-line,attribute=first-attribute"
     println("*********************************  INITIALIZE  *********************************")
-
-    println("Sallo needs create your encrypted file, you must insert your pass!")
-    println("Enter your password: ")
-    val password = scanner.next()
+    println(s"Sallo is creating your encrypted file, password: $password")
+    println(s"In path: ${new File(".").getCanonicalPath}")
     val pw = new PrintWriter(new File(DECRYPT_FILE))
     pw.write(exampleRecord)
     pw.close()
@@ -69,7 +76,8 @@ object Sallo {
     println("Add attribute at line index     : add attribute [index] attributeName=attributeValue")
     println("Update attribute at line index  : update attribute [index] attributeName=attributeValue")
     println("Remove attribute at line index  : remove attribute [index] attributeName")
-
+    println("Show Help                       : help")
+    println("Quit sallo                      : exit")
   }
 
   def selection(fixLine: Boolean, password: String = DEFAULT_PASS): Unit = {
@@ -159,9 +167,11 @@ object Sallo {
           case DaoReturnMessage.NO_ATTRIBUTE_CHANGED => println(s"In line '$index' '$keyName' does not exist, RETRY!")
           case DaoReturnMessage.SUCCESS => println(s"Line $index, attribute: $keyName REMOVED!")
         }
+      case Array("help") =>
+        help()
       case Array("exit") =>
         println("Goodbye!")
-        System.exit(1)
+        System.exit(0)
       case _ =>
         println("Command not found, RETRY!")
         help()

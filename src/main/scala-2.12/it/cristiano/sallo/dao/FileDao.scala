@@ -18,8 +18,8 @@ import scala.io.Source
 class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false) extends GenericDao{
 
 
-  init
-  def init: Unit ={
+  init()
+  def init(): Unit ={
 
     //Check if file exists.
     Source.fromFile(encryptFile)
@@ -27,8 +27,8 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     // Backup input file
     val src = encryptFile
     val dest = encryptFile + ".bac"
-    val inputChannel = new FileInputStream(src).getChannel()
-    val outputChannel = new FileOutputStream(dest).getChannel()
+    val inputChannel = new FileInputStream(src).getChannel
+    val outputChannel = new FileOutputStream(dest).getChannel
     outputChannel.transferFrom(inputChannel, 0, inputChannel.size())
     inputChannel.close()
     outputChannel.close()
@@ -54,15 +54,28 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val listLinesWithIndex = lines.zipWithIndex.map(lineWithIndex => {
       val lineDao = new LineDao(lineWithIndex._1)
       val listIndexInLine = lineDao.get("index")
-      if (listIndexInLine.lift(0) == None || listIndexInLine.lift(0).get._2 != 0) {
-        "index=".concat(lineWithIndex._2.toString()).concat(",").concat(lineWithIndex._1)
+      if (listIndexInLine.lift(0).isEmpty || listIndexInLine.lift(0).get._2 != 0) {
+        "index=".concat(lineWithIndex._2.toString).concat(",").concat(lineWithIndex._1)
       }
-      else if (listIndexInLine.lift(0).get._2 == 0 && lineWithIndex._2 != listIndexInLine.lift(0).get._1){
+      else if (listIndexInLine.lift(0).get._2 == 0 && lineWithIndex._2 != listIndexInLine.lift(0).get._1.toInt){
         lineDao.update("index", lineWithIndex._2.toString, 0)._1
       }
       else lineWithIndex._1
     })
     listLinesWithIndex
+
+//    val listLinesWithIndex = lines.zipWithIndex.map(lineWithIndex => {
+//      val lineDao = new LineDao(lineWithIndex._1)
+//      val listIndexInLine = lineDao.get("index")
+//      if (listIndexInLine.lift(0) == None || listIndexInLine.lift(0).get._2 != 0) {
+//        "index=".concat(lineWithIndex._2.toString).concat(",").concat(lineWithIndex._1)
+//      }
+//      else if (listIndexInLine.lift(0).get._2 == 0 && lineWithIndex._2 != listIndexInLine.lift(0).get._1.toInt){
+//        lineDao.update("index", lineWithIndex._2.toString, 0)._1
+//      }
+//      else lineWithIndex._1
+//    })
+//    listLinesWithIndex
   }
 
   /**
@@ -112,7 +125,7 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
       }
       CryptoUtils.encryptList(key, fixIndex(bufLines.toList), encryptFile)
     } catch {
-      case nfe: FileNotFoundException => message = DaoReturnMessage.FILE_NOT_EXIST
+      case _: FileNotFoundException => message = DaoReturnMessage.FILE_NOT_EXIST
     }
     message
   }
@@ -128,10 +141,9 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val bufLines = lines.toBuffer
     val message = new ElementValidation(new LineValidation(line)).execute
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         bufLines += line
         CryptoUtils.encryptList(key,fixIndex(bufLines.toList),encryptFile)
-      }
       case _ =>
     }
     message
@@ -141,10 +153,9 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val lines = CryptoUtils.decrypt(key, encryptFile)
     val message = new ElementValidation(new IndexValidation(index, lines)).execute
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         val listFiltered = lines.filter(l => new LineDao(l).get("index").lift(0).get._1 == index)
         (listFiltered.lift(0).get, message)
-      }
       case _ => ("", message)
     }
   }
@@ -153,10 +164,9 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val lines = CryptoUtils.decrypt(key,encryptFile)
     val message = new ElementValidation(new IndexValidation(index, lines)).execute
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         val linesFiltered = lines.filterNot(l => new LineDao(l).get("index").lift(0).get._1 == index)
         CryptoUtils.encryptList(key,fixIndex(linesFiltered),encryptFile)
-      }
       case _ =>
     }
     message
@@ -166,7 +176,7 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val currentLine = getLine(index)
     val message = currentLine._2
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         val lines = CryptoUtils.decrypt(key, encryptFile)
         val listResult = lines.zipWithIndex.map(lz =>
           if (lz._2.toString == index)
@@ -175,7 +185,6 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
             lz._1
         )
         CryptoUtils.encryptList(key, listResult, encryptFile)
-      }
       case _ =>
     }
     message
@@ -185,7 +194,7 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val currentLine = getLine(index)
     var message = currentLine._2
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         val lines = CryptoUtils.decrypt(key, encryptFile)
         val listResult = lines.zipWithIndex.map(lz =>
           if (lz._2.toString == index) {
@@ -198,7 +207,6 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
           }
         )
         CryptoUtils.encryptList(key, listResult, encryptFile)
-      }
       case _ =>
     }
     message
@@ -208,7 +216,7 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
     val currentLine = getLine(index)
     var message = currentLine._2
     message match {
-      case DaoReturnMessage.SUCCESS => {
+      case DaoReturnMessage.SUCCESS =>
         val lines = CryptoUtils.decrypt(key, encryptFile)
         val listResult = lines.zipWithIndex.map(lz =>
           if (lz._2.toString == index) {
@@ -221,7 +229,6 @@ class FileDao (key: String, encryptFile: String, boolFixIndex : Boolean = false)
           }
         )
         CryptoUtils.encryptList(key, listResult, encryptFile)
-      }
       case _ =>
     }
     message

@@ -15,7 +15,7 @@ class LineDaoTest extends BaseTest with BeforeAndAfter{
     */
   "line" must "be without values" in {
     val line = new LineDao ("key0=value0,key1=value1,key0=value2,key3=value3")
-    assert(line.get("key_not_available").size == 0)
+    assert(line.get("key_not_available").isEmpty)
   }
 
   /**

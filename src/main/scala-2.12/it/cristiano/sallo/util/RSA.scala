@@ -12,7 +12,7 @@ object RSA {
 
   def decodePublicKey(encodedKey: String): Option[PublicKey] = {
     this.decodePublicKey(
-      (new Base64()).decode(encodedKey)
+      new Base64().decode(encodedKey)
     )
   }
 
@@ -31,7 +31,7 @@ object RSA {
   }
 
   def encryptB64(key: PublicKey, data: Array[Byte]): String = {
-    (new Base64()).encodeAsString(this.encrypt(key, data))
+    new Base64().encodeAsString(this.encrypt(key, data))
   }
 
   def encryptB64(key: PublicKey, data: String): String = {

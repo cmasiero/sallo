@@ -7,7 +7,7 @@ trait GenericDao {
 
   def count = 0
 
-  def getAll = List[String]()
+  def getAll: List[String] = List[String]()
 
   def getByMatch(pattern: String): List[String] = List[String]()
 

@@ -17,7 +17,7 @@ class LineDao (line: String) {
     * @param key the key we will get
     * @return List od tuples
     */
-  def get(key: String) : List[Tuple2[String,Int]] = {
+  def get(key: String) : List[(String, Int)] = {
     val s = line.split(",").map(_.trim)
     val sZipped = s zipWithIndex
     val resultTmp = sZipped.filter(tuple => {
@@ -39,12 +39,12 @@ class LineDao (line: String) {
     * <p>In case of not specified index result will be:<br>
     * result = "key0=CHANGE,key1=value1,key0=CHANGE,key3=value3"<br>
     * in other words : function will update values at each keys.<br>
-    * @param key
-    * @param value
-    * @param index
+    * @param key   key whose value is to be updated.
+    * @param value value to be updated
+    * @param index index of attribute in record
     * @return (line updated, return message)
     */
-  def update(key: String, value: String, index: Int = -1): Tuple2[String, DaoReturnMessage.Value] = {
+  def update(key: String, value: String, index: Int = -1): (String, DaoReturnMessage.Value) = {
     var message = DaoReturnMessage.NO_ATTRIBUTE_CHANGED
     val s = line.split(",").map(_.trim)
     val sZipped = s zipWithIndex
@@ -66,11 +66,11 @@ class LineDao (line: String) {
     (result, message)
   }
 
-  def removeAttribute(key: String): Tuple2[String, DaoReturnMessage.Value] = {
+  def removeAttribute(key: String): (String, DaoReturnMessage.Value) = {
     var message = DaoReturnMessage.NO_ATTRIBUTE_CHANGED
     val lineSplit = line.split(",").map(_.trim)
     val resultSplit = lineSplit.filterNot(attr => attr.split("=").lift(0).get == key)
-    if (resultSplit.size != lineSplit.size) message = DaoReturnMessage.SUCCESS
+    if (resultSplit.length != lineSplit.length) message = DaoReturnMessage.SUCCESS
     (resultSplit.mkString(","),message)
   }
 

@@ -14,11 +14,10 @@ class CryptoUtilsTest extends BaseTest with BeforeAndAfter{
 
 
   "RSA" must "have its test" in {
-    val keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
-    val pair = keyGen.generateKeyPair();
+    val keyGen = KeyPairGenerator.getInstance("DSA", "SUN")
+    val pair = keyGen.generateKeyPair()
     println("private " + pair.getPrivate)
     println("public  " + pair.getPublic)
-    assert(true)
   }
 
   "CryptoUtils" must "create the default file.csv.enc" in {

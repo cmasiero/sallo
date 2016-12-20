@@ -51,7 +51,7 @@ class FileDaoTest extends BaseTest{
     * When there is no match getByMatch it get a 0 size List.
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain records with pattern 'no_match'" in {
-    assert(fdao.getByMatch("no_match").size == 0)
+    assert(fdao.getByMatch("no_match").isEmpty)
   }
 
   /**
@@ -88,11 +88,13 @@ class FileDaoTest extends BaseTest{
     * remove line 4
     */
   "File " + ENCRYPT_FILE_NAME_FILE_DAO_TEST must " not contain record 4 because it has been removed" in {
-    //fdao.fixIndex
+
     assert(DaoReturnMessage.NO_LINE == fdao.removeLine("32"))
 
     val check = "name=massimo,surname=marino,user=m-marino,pass=password1"
+    assert(fdao.getByMatch(check).size == 1)
     assert(DaoReturnMessage.SUCCESS == fdao.removeLine("4"))
+    assert(fdao.getByMatch(check).isEmpty)
 
   }
 
